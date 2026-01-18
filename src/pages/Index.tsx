@@ -1,12 +1,89 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Header } from "@/components/Header";
+import { Timer } from "@/components/Timer";
+import { SubjectSelector } from "@/components/SubjectSelector";
+import { SessionHistory } from "@/components/SessionHistory";
+import { Stats } from "@/components/Stats";
+import { useStudySessions } from "@/hooks/useStudySessions";
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 const Index = () => {
+  const {
+    subjects,
+    sessions,
+    selectedSubject,
+    setSelectedSubject,
+    addSubject,
+    removeSubject,
+    addSession,
+    getTodayTotal,
+    getWeekTotal,
+    getSubjectStats,
+  } = useStudySessions();
+
+  const handleSessionEnd = (duration: number) => {
+    const session = addSession(duration);
+    if (session) {
+      const minutes = Math.floor(duration / 60);
+      toast.success(`Session saved: ${minutes} minutes of ${session.subjectName}`);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+      
+      <main className="flex-1 container mx-auto px-4 py-6 sm:py-10">
+        <div className="grid lg:grid-cols-[1fr_350px] gap-8 lg:gap-12">
+          {/* Main Timer Section */}
+          <div className="space-y-8 sm:space-y-10">
+            {/* Current Subject Display */}
+            {selectedSubject && (
+              <div className="flex items-center justify-center gap-3 text-lg sm:text-xl">
+                <span
+                  className="w-4 h-4 border-2 border-foreground"
+                  style={{ backgroundColor: selectedSubject.color }}
+                />
+                <span className="font-bold uppercase tracking-wide">
+                  {selectedSubject.name}
+                </span>
+              </div>
+            )}
+
+            {/* Timer */}
+            <Timer
+              onSessionEnd={handleSessionEnd}
+              disabled={!selectedSubject}
+            />
+
+            {/* Subject Selector */}
+            <div className="border-t-2 border-foreground pt-8">
+              <SubjectSelector
+                subjects={subjects}
+                selectedSubject={selectedSubject}
+                onSelect={setSelectedSubject}
+                onAdd={addSubject}
+                onRemove={removeSubject}
+              />
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <aside className="space-y-8 lg:border-l-2 lg:border-foreground lg:pl-8">
+            <Stats
+              todayTotal={getTodayTotal()}
+              weekTotal={getWeekTotal()}
+              subjectStats={getSubjectStats()}
+            />
+            
+            <div className="border-t-2 border-foreground pt-8">
+              <SessionHistory sessions={sessions} />
+            </div>
+          </aside>
+        </div>
+      </main>
+
+      <Toaster />
     </div>
   );
 };
