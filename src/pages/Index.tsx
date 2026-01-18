@@ -25,7 +25,9 @@ const Index = () => {
     const session = addSession(duration);
     if (session) {
       const minutes = Math.floor(duration / 60);
-      toast.success(`Session saved: ${minutes} minutes of ${session.subjectName}`);
+      toast.success(`Session saved: ${minutes} minutes of ${session.subjectName}`, {
+        duration: 4000,
+      });
     }
   };
 
@@ -34,7 +36,7 @@ const Index = () => {
       <Header />
       
       <main className="flex-1 container mx-auto px-4 py-6 sm:py-10">
-        <div className="grid lg:grid-cols-[1fr_350px] gap-8 lg:gap-12">
+        <div className="grid lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_380px] gap-8 lg:gap-10">
           {/* Main Timer Section */}
           <div className="space-y-8 sm:space-y-10">
             {/* Current Subject Display */}
@@ -83,7 +85,14 @@ const Index = () => {
         </div>
       </main>
 
-      <Toaster />
+      {/* Footer */}
+      <footer className="border-t-2 border-foreground py-4 mt-auto">
+        <div className="container mx-auto px-4 text-center text-xs text-muted-foreground uppercase tracking-wide">
+          Focus • Track • Improve
+        </div>
+      </footer>
+
+      <Toaster position="bottom-center" />
     </div>
   );
 };
