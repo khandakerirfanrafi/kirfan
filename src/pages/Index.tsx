@@ -3,6 +3,7 @@ import { Timer } from "@/components/Timer";
 import { SubjectSelector } from "@/components/SubjectSelector";
 import { SessionHistory } from "@/components/SessionHistory";
 import { Stats } from "@/components/Stats";
+import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { useStudySessions } from "@/hooks/useStudySessions";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -66,6 +67,14 @@ const Index = () => {
                 onSelect={setSelectedSubject}
                 onAdd={addSubject}
                 onRemove={removeSubject}
+              />
+            </div>
+
+            {/* Activity Heatmap */}
+            <div className="border-t-2 border-foreground pt-8">
+              <ActivityHeatmap 
+                sessions={sessions} 
+                subject={selectedSubject?.name}
               />
             </div>
           </div>
