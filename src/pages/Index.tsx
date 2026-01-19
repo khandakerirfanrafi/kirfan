@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Timer } from "@/components/Timer";
+import { PomodoroTimer } from "@/components/PomodoroTimer";
+import { TimerModeToggle, TimerMode } from "@/components/TimerModeToggle";
 import { SubjectSelector } from "@/components/SubjectSelector";
 import { SessionHistory } from "@/components/SessionHistory";
 import { Stats } from "@/components/Stats";
@@ -9,6 +12,11 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 
 const Index = () => {
+  const [timerMode, setTimerMode] = useState<TimerMode>(() => {
+    const saved = localStorage.getItem("akta-timer-mode");
+    return (saved as TimerMode) || "stopwatch";
+  });
+
   const {
     subjects,
     sessions,
@@ -32,6 +40,11 @@ const Index = () => {
     }
   };
 
+  const handleModeChange = (mode: TimerMode) => {
+    setTimerMode(mode);
+    localStorage.setItem("akta-timer-mode", mode);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -40,6 +53,14 @@ const Index = () => {
         <div className="grid lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_380px] gap-8 lg:gap-10">
           {/* Main Timer Section */}
           <div className="space-y-8 sm:space-y-10">
+            {/* Timer Mode Toggle */}
+            <div className="flex justify-center">
+              <TimerModeToggle
+                mode={timerMode}
+                onModeChange={handleModeChange}
+              />
+            </div>
+
             {/* Current Subject Display */}
             {selectedSubject && (
               <div className="flex items-center justify-center gap-3 text-lg sm:text-xl">
@@ -54,10 +75,17 @@ const Index = () => {
             )}
 
             {/* Timer */}
-            <Timer
-              onSessionEnd={handleSessionEnd}
-              disabled={!selectedSubject}
-            />
+            {timerMode === "stopwatch" ? (
+              <Timer
+                onSessionEnd={handleSessionEnd}
+                disabled={!selectedSubject}
+              />
+            ) : (
+              <PomodoroTimer
+                onSessionEnd={handleSessionEnd}
+                disabled={!selectedSubject}
+              />
+            )}
 
             {/* Subject Selector */}
             <div className="border-t-2 border-foreground pt-8">
