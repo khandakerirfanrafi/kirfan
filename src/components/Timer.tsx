@@ -1,4 +1,5 @@
 import { useTimer } from "@/hooks/useTimer";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Square, RotateCcw } from "lucide-react";
 import { useEffect, useCallback } from "react";
@@ -10,14 +11,16 @@ interface TimerProps {
 
 export function Timer({ onSessionEnd, disabled }: TimerProps) {
   const { seconds, isRunning, isPaused, start, pause, resume, stop, reset, formatTime } = useTimer();
+  const { playSound } = useNotificationSound();
   const time = formatTime(seconds);
 
   const handleStop = useCallback(() => {
     if (seconds >= 60) {
+      playSound("timer-end");
       onSessionEnd(seconds);
     }
     reset();
-  }, [seconds, onSessionEnd, reset]);
+  }, [seconds, onSessionEnd, reset, playSound]);
 
   // Keyboard shortcuts
   useEffect(() => {
