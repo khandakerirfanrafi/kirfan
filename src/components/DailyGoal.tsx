@@ -1,4 +1,4 @@
-import { memo, useEffect } from "react";
+import { memo, useEffect, useRef } from "react";
 import { Target, Flame, Trophy, Settings2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/popover";
 import { Slider } from "@/components/ui/slider";
 import { useDailyGoal } from "@/hooks/useDailyGoal";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 
 interface DailyGoalProps {
   todayTotalSeconds: number;
@@ -24,10 +25,26 @@ export const DailyGoal = memo(function DailyGoal({ todayTotalSeconds }: DailyGoa
     setTargetMinutes,
     updateStreak,
   } = useDailyGoal(todayTotalSeconds);
+  
+  const { playSound } = useNotificationSound();
+  const hasPlayedGoalSound = useRef(false);
 
   useEffect(() => {
     updateStreak();
-  }, [isGoalMet, updateStreak]);
+    
+    // Play sound when goal is first completed
+    if (isGoalMet && !hasPlayedGoalSound.current) {
+      playSound("goal-complete");
+      hasPlayedGoalSound.current = true;
+    }
+  }, [isGoalMet, updateStreak, playSound]);
+
+  // Reset the flag when progress goes back below goal (for next day)
+  useEffect(() => {
+    if (!isGoalMet) {
+      hasPlayedGoalSound.current = false;
+    }
+  }, [isGoalMet]);
 
   return (
     <div className="border-2 border-foreground p-4 shadow-sm">
