@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo, useCallback, lazy, Suspense } from "react";
 import { Header } from "@/components/Header";
 import { Timer } from "@/components/Timer";
 import { PomodoroTimer } from "@/components/PomodoroTimer";
@@ -7,6 +7,8 @@ import { SubjectSelector } from "@/components/SubjectSelector";
 import { SessionHistory } from "@/components/SessionHistory";
 import { Stats } from "@/components/Stats";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
+import { DailyGoal } from "@/components/DailyGoal";
+import { MotivationalQuote } from "@/components/MotivationalQuote";
 import { useStudySessions } from "@/hooks/useStudySessions";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -30,7 +32,7 @@ const Index = () => {
     getSubjectStats,
   } = useStudySessions();
 
-  const handleSessionEnd = (duration: number) => {
+  const handleSessionEnd = useCallback((duration: number) => {
     const session = addSession(duration);
     if (session) {
       const minutes = Math.floor(duration / 60);
@@ -38,12 +40,16 @@ const Index = () => {
         duration: 4000,
       });
     }
-  };
+  }, [addSession]);
 
-  const handleModeChange = (mode: TimerMode) => {
+  const handleModeChange = useCallback((mode: TimerMode) => {
     setTimerMode(mode);
     localStorage.setItem("akta-timer-mode", mode);
-  };
+  }, []);
+
+  const todayTotal = useMemo(() => getTodayTotal(), [getTodayTotal]);
+  const weekTotal = useMemo(() => getWeekTotal(), [getWeekTotal]);
+  const subjectStats = useMemo(() => getSubjectStats(), [getSubjectStats]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -108,14 +114,20 @@ const Index = () => {
           </div>
 
           {/* Sidebar */}
-          <aside className="space-y-8 lg:border-l-2 lg:border-foreground lg:pl-8">
+          <aside className="space-y-6 lg:border-l-2 lg:border-foreground lg:pl-8">
+            {/* Motivational Quote */}
+            <MotivationalQuote />
+            
+            {/* Daily Goal */}
+            <DailyGoal todayTotalSeconds={todayTotal} />
+            
             <Stats
-              todayTotal={getTodayTotal()}
-              weekTotal={getWeekTotal()}
-              subjectStats={getSubjectStats()}
+              todayTotal={todayTotal}
+              weekTotal={weekTotal}
+              subjectStats={subjectStats}
             />
             
-            <div className="border-t-2 border-foreground pt-8">
+            <div className="border-t-2 border-foreground pt-6">
               <SessionHistory sessions={sessions} />
             </div>
           </aside>
