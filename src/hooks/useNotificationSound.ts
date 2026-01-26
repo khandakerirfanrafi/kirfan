@@ -37,7 +37,9 @@ export function useNotificationSound() {
     oscillator.stop(audioContext.currentTime + duration);
   }, [getAudioContext]);
 
-  const playSound = useCallback((soundType: SoundType) => {
+  const playSound = useCallback((soundType: SoundType, enabled: boolean = true) => {
+    if (!enabled) return;
+    
     switch (soundType) {
       case "timer-end":
         // Success melody: ascending notes
