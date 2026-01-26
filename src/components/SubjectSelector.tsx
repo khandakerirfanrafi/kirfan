@@ -1,15 +1,15 @@
-import { Subject } from "@/hooks/useStudySessions";
+import { Subject } from "@/hooks/useCloudStudySessions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X, Check } from "lucide-react";
+import { Plus, X, Check, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 interface SubjectSelectorProps {
   subjects: Subject[];
   selectedSubject: Subject | null;
   onSelect: (subject: Subject) => void;
-  onAdd: (name: string) => void;
-  onRemove: (id: string) => void;
+  onAdd: (name: string) => Promise<Subject | null> | void;
+  onRemove: (id: string) => Promise<void> | void;
 }
 
 export function SubjectSelector({
@@ -21,13 +21,22 @@ export function SubjectSelector({
 }: SubjectSelectorProps) {
   const [newSubjectName, setNewSubjectName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     if (newSubjectName.trim()) {
-      onAdd(newSubjectName.trim());
+      setIsLoading(true);
+      await onAdd(newSubjectName.trim());
       setNewSubjectName("");
       setIsAdding(false);
+      setIsLoading(false);
     }
+  };
+
+  const handleRemove = async (id: string) => {
+    setIsLoading(true);
+    await onRemove(id);
+    setIsLoading(false);
   };
 
   return (
@@ -59,7 +68,7 @@ export function SubjectSelector({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onRemove(subject.id);
+                  handleRemove(subject.id);
                 }}
                 className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-2 border-foreground"
                 aria-label={`Remove ${subject.name}`}
@@ -81,8 +90,8 @@ export function SubjectSelector({
             onKeyDown={(e) => e.key === "Enter" && handleAdd()}
             autoFocus
           />
-          <Button onClick={handleAdd} className="border-2 shadow-2xs">
-            Add
+          <Button onClick={handleAdd} className="border-2 shadow-2xs" disabled={isLoading}>
+            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add"}
           </Button>
           <Button
             variant="outline"
