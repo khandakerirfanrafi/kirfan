@@ -10,6 +10,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { useDailyGoal } from "@/hooks/useDailyGoal";
 import { useNotificationSound } from "@/hooks/useNotificationSound";
+import { usePomodoroSettings } from "@/hooks/usePomodoroSettings";
 
 interface DailyGoalProps {
   todayTotalSeconds: number;
@@ -27,6 +28,7 @@ export const DailyGoal = memo(function DailyGoal({ todayTotalSeconds }: DailyGoa
   } = useDailyGoal(todayTotalSeconds);
   
   const { playSound } = useNotificationSound();
+  const { settings } = usePomodoroSettings();
   const hasPlayedGoalSound = useRef(false);
 
   useEffect(() => {
@@ -34,10 +36,10 @@ export const DailyGoal = memo(function DailyGoal({ todayTotalSeconds }: DailyGoa
     
     // Play sound when goal is first completed
     if (isGoalMet && !hasPlayedGoalSound.current) {
-      playSound("goal-complete");
+      playSound("goal-complete", settings.soundEnabled);
       hasPlayedGoalSound.current = true;
     }
-  }, [isGoalMet, updateStreak, playSound]);
+  }, [isGoalMet, updateStreak, playSound, settings.soundEnabled]);
 
   // Reset the flag when progress goes back below goal (for next day)
   useEffect(() => {
