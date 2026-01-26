@@ -14,7 +14,167 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      study_sessions: {
+        Row: {
+          duration: number
+          id: string
+          started_at: string
+          subject_id: string
+          subject_name: string
+          user_id: string
+        }
+        Insert: {
+          duration: number
+          id?: string
+          started_at?: string
+          subject_id: string
+          subject_name: string
+          user_id: string
+        }
+        Update: {
+          duration?: number
+          id?: string
+          started_at?: string
+          subject_id?: string
+          subject_name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_sessions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subjects: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          auto_start_break: boolean
+          auto_start_work: boolean
+          created_at: string
+          daily_goal_minutes: number
+          id: string
+          long_break_duration: number
+          sessions_before_long_break: number
+          short_break_duration: number
+          sound_enabled: boolean
+          updated_at: string
+          user_id: string
+          work_duration: number
+        }
+        Insert: {
+          auto_start_break?: boolean
+          auto_start_work?: boolean
+          created_at?: string
+          daily_goal_minutes?: number
+          id?: string
+          long_break_duration?: number
+          sessions_before_long_break?: number
+          short_break_duration?: number
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id: string
+          work_duration?: number
+        }
+        Update: {
+          auto_start_break?: boolean
+          auto_start_work?: boolean
+          created_at?: string
+          daily_goal_minutes?: number
+          id?: string
+          long_break_duration?: number
+          sessions_before_long_break?: number
+          short_break_duration?: number
+          sound_enabled?: boolean
+          updated_at?: string
+          user_id?: string
+          work_duration?: number
+        }
+        Relationships: []
+      }
+      user_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_active_date: string | null
+          longest_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_active_date?: string | null
+          longest_streak?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

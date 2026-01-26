@@ -10,7 +10,16 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { RotateCcw } from "lucide-react";
-import { PomodoroSettings as PomodoroSettingsType } from "@/hooks/usePomodoroSettings";
+
+interface PomodoroSettingsType {
+  workDuration: number;
+  shortBreakDuration: number;
+  longBreakDuration: number;
+  sessionsBeforeLongBreak: number;
+  autoStartBreak: boolean;
+  autoStartWork: boolean;
+  soundEnabled: boolean;
+}
 
 interface PomodoroSettingsProps {
   open: boolean;

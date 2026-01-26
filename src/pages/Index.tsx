@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, lazy, Suspense } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { Timer } from "@/components/Timer";
 import { PomodoroTimer } from "@/components/PomodoroTimer";
@@ -9,9 +9,12 @@ import { Stats } from "@/components/Stats";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { DailyGoal } from "@/components/DailyGoal";
 import { MotivationalQuote } from "@/components/MotivationalQuote";
-import { useStudySessions } from "@/hooks/useStudySessions";
+import { useCloudStudySessions } from "@/hooks/useCloudStudySessions";
+import { useCloudSettings } from "@/hooks/useCloudSettings";
+import { useCloudStreak } from "@/hooks/useCloudStreak";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
   const [timerMode, setTimerMode] = useState<TimerMode>(() => {
@@ -30,17 +33,23 @@ const Index = () => {
     getTodayTotal,
     getWeekTotal,
     getSubjectStats,
-  } = useStudySessions();
+    loading: sessionsLoading,
+  } = useCloudStudySessions();
 
-  const handleSessionEnd = useCallback((duration: number) => {
-    const session = addSession(duration);
+  const { settings, updateSettings, resetSettings } = useCloudSettings();
+  const { streak, updateStreak } = useCloudStreak();
+
+  const handleSessionEnd = useCallback(async (duration: number) => {
+    const session = await addSession(duration);
     if (session) {
       const minutes = Math.floor(duration / 60);
-      toast.success(`Session saved: ${minutes} minutes of ${session.subjectName}`, {
+      toast.success(`সেশন সেভ হয়েছে: ${minutes} মিনিট - ${session.subjectName}`, {
         duration: 4000,
       });
+      // Update streak when session is added
+      await updateStreak();
     }
-  }, [addSession]);
+  }, [addSession, updateStreak]);
 
   const handleModeChange = useCallback((mode: TimerMode) => {
     setTimerMode(mode);
@@ -51,6 +60,17 @@ const Index = () => {
   const weekTotal = useMemo(() => getWeekTotal(), [getWeekTotal]);
   const subjectStats = useMemo(() => getSubjectStats(), [getSubjectStats]);
 
+  if (sessionsLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin" />
+          <p className="text-muted-foreground uppercase tracking-wide text-sm">ডেটা লোড হচ্ছে...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
@@ -60,7 +80,7 @@ const Index = () => {
           {/* Main Timer Section */}
           <div className="space-y-8 sm:space-y-10">
             {/* Timer Mode Toggle */}
-            <div className="flex justify-center">
+            <div className="flex justify-center animate-fade-in">
               <TimerModeToggle
                 mode={timerMode}
                 onModeChange={handleModeChange}
@@ -69,7 +89,7 @@ const Index = () => {
 
             {/* Current Subject Display */}
             {selectedSubject && (
-              <div className="flex items-center justify-center gap-3 text-lg sm:text-xl">
+              <div className="flex items-center justify-center gap-3 text-lg sm:text-xl animate-fade-in">
                 <span
                   className="w-4 h-4 border-2 border-foreground"
                   style={{ backgroundColor: selectedSubject.color }}
@@ -81,17 +101,22 @@ const Index = () => {
             )}
 
             {/* Timer */}
-            {timerMode === "stopwatch" ? (
-              <Timer
-                onSessionEnd={handleSessionEnd}
-                disabled={!selectedSubject}
-              />
-            ) : (
-              <PomodoroTimer
-                onSessionEnd={handleSessionEnd}
-                disabled={!selectedSubject}
-              />
-            )}
+            <div className="animate-scale-in">
+              {timerMode === "stopwatch" ? (
+                <Timer
+                  onSessionEnd={handleSessionEnd}
+                  disabled={!selectedSubject}
+                />
+              ) : (
+                <PomodoroTimer
+                  onSessionEnd={handleSessionEnd}
+                  disabled={!selectedSubject}
+                  settings={settings}
+                  onUpdateSettings={updateSettings}
+                  onResetSettings={resetSettings}
+                />
+              )}
+            </div>
 
             {/* Subject Selector */}
             <div className="border-t-2 border-foreground pt-8">
@@ -116,18 +141,29 @@ const Index = () => {
           {/* Sidebar */}
           <aside className="space-y-6 lg:border-l-2 lg:border-foreground lg:pl-8">
             {/* Motivational Quote */}
-            <MotivationalQuote />
+            <div className="animate-fade-in">
+              <MotivationalQuote />
+            </div>
             
             {/* Daily Goal */}
-            <DailyGoal todayTotalSeconds={todayTotal} />
+            <div className="animate-fade-in" style={{ animationDelay: "100ms" }}>
+              <DailyGoal 
+                todayTotalSeconds={todayTotal} 
+                targetMinutes={settings.dailyGoalMinutes}
+                onUpdateTarget={(minutes) => updateSettings({ dailyGoalMinutes: minutes })}
+                currentStreak={streak.currentStreak}
+              />
+            </div>
             
-            <Stats
-              todayTotal={todayTotal}
-              weekTotal={weekTotal}
-              subjectStats={subjectStats}
-            />
+            <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
+              <Stats
+                todayTotal={todayTotal}
+                weekTotal={weekTotal}
+                subjectStats={subjectStats}
+              />
+            </div>
             
-            <div className="border-t-2 border-foreground pt-6">
+            <div className="border-t-2 border-foreground pt-6 animate-fade-in" style={{ animationDelay: "300ms" }}>
               <SessionHistory sessions={sessions} />
             </div>
           </aside>

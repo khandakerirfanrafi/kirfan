@@ -14,39 +14,65 @@ import { usePomodoroSettings } from "@/hooks/usePomodoroSettings";
 
 interface DailyGoalProps {
   todayTotalSeconds: number;
+  targetMinutes?: number;
+  onUpdateTarget?: (minutes: number) => void;
+  currentStreak?: number;
 }
 
-export const DailyGoal = memo(function DailyGoal({ todayTotalSeconds }: DailyGoalProps) {
+export const DailyGoal = memo(function DailyGoal({ 
+  todayTotalSeconds,
+  targetMinutes: externalTargetMinutes,
+  onUpdateTarget,
+  currentStreak: externalStreak,
+}: DailyGoalProps) {
   const {
-    targetMinutes,
-    streak,
+    targetMinutes: localTargetMinutes,
+    streak: localStreak,
     todayMinutes,
     progress,
     isGoalMet,
-    setTargetMinutes,
+    setTargetMinutes: setLocalTargetMinutes,
     updateStreak,
   } = useDailyGoal(todayTotalSeconds);
+  
+  // Use external values if provided, otherwise use local
+  const targetMinutes = externalTargetMinutes ?? localTargetMinutes;
+  const streak = externalStreak ?? localStreak;
+  
+  const setTargetMinutes = (value: number) => {
+    if (onUpdateTarget) {
+      onUpdateTarget(value);
+    } else {
+      setLocalTargetMinutes(value);
+    }
+  };
+  
+  // Recalculate progress and goal met based on external target
+  const actualProgress = Math.min((todayMinutes / targetMinutes) * 100, 100);
+  const actualIsGoalMet = todayMinutes >= targetMinutes;
   
   const { playSound } = useNotificationSound();
   const { settings } = usePomodoroSettings();
   const hasPlayedGoalSound = useRef(false);
 
   useEffect(() => {
-    updateStreak();
+    if (!externalStreak) {
+      updateStreak();
+    }
     
     // Play sound when goal is first completed
-    if (isGoalMet && !hasPlayedGoalSound.current) {
+    if (actualIsGoalMet && !hasPlayedGoalSound.current) {
       playSound("goal-complete", settings.soundEnabled);
       hasPlayedGoalSound.current = true;
     }
-  }, [isGoalMet, updateStreak, playSound, settings.soundEnabled]);
+  }, [actualIsGoalMet, updateStreak, playSound, settings.soundEnabled, externalStreak]);
 
   // Reset the flag when progress goes back below goal (for next day)
   useEffect(() => {
-    if (!isGoalMet) {
+    if (!actualIsGoalMet) {
       hasPlayedGoalSound.current = false;
     }
-  }, [isGoalMet]);
+  }, [actualIsGoalMet]);
 
   return (
     <div className="border-2 border-foreground p-4 shadow-sm">
@@ -97,8 +123,8 @@ export const DailyGoal = memo(function DailyGoal({ todayTotalSeconds }: DailyGoa
         </div>
         
         <div className="relative">
-          <Progress value={progress} className="h-3 border border-foreground" />
-          {isGoalMet && (
+          <Progress value={actualProgress} className="h-3 border border-foreground" />
+          {actualIsGoalMet && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Trophy className="w-3 h-3 text-primary-foreground animate-pulse" />
             </div>
@@ -115,7 +141,7 @@ export const DailyGoal = memo(function DailyGoal({ todayTotalSeconds }: DailyGoa
         </div>
       )}
 
-      {isGoalMet && (
+      {actualIsGoalMet && (
         <div className="mt-3 pt-3 border-t border-border text-center">
           <p className="text-sm font-bold text-chart-2">🎉 Goal Complete!</p>
         </div>

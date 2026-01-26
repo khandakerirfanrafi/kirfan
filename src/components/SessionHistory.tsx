@@ -1,4 +1,4 @@
-import { StudySession } from "@/hooks/useStudySessions";
+import { StudySession } from "@/hooks/useCloudStudySessions";
 import { formatDistanceToNow } from "date-fns";
 import { History } from "lucide-react";
 

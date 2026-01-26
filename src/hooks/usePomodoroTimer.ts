@@ -1,6 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { PomodoroSettings } from "./usePomodoroSettings";
 import { useNotificationSound } from "./useNotificationSound";
+
+interface PomodoroSettings {
+  workDuration: number;
+  shortBreakDuration: number;
+  longBreakDuration: number;
+  sessionsBeforeLongBreak: number;
+  autoStartBreak: boolean;
+  autoStartWork: boolean;
+  soundEnabled: boolean;
+}
 
 export type PomodoroPhase = "work" | "shortBreak" | "longBreak";
 

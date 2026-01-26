@@ -1,19 +1,69 @@
 import { usePomodoroTimer, PomodoroPhase } from "@/hooks/usePomodoroTimer";
-import { usePomodoroSettings } from "@/hooks/usePomodoroSettings";
 import { Button } from "@/components/ui/button";
 import { Play, Pause, SkipForward, RotateCcw, Settings, Coffee, Brain } from "lucide-react";
 import { useEffect, useCallback, useState } from "react";
 import { PomodoroSettings } from "./PomodoroSettings";
 import { toast } from "sonner";
+import { CloudSettings } from "@/hooks/useCloudSettings";
 
 interface PomodoroTimerProps {
   onSessionEnd: (duration: number) => void;
   disabled: boolean;
+  settings?: CloudSettings;
+  onUpdateSettings?: (updates: Partial<CloudSettings>) => void;
+  onResetSettings?: () => void;
 }
 
-export function PomodoroTimer({ onSessionEnd, disabled }: PomodoroTimerProps) {
-  const { settings, updateSettings, resetSettings } = usePomodoroSettings();
+// Convert CloudSettings to PomodoroSettings format
+interface PomodoroSettingsType {
+  workDuration: number;
+  shortBreakDuration: number;
+  longBreakDuration: number;
+  sessionsBeforeLongBreak: number;
+  autoStartBreak: boolean;
+  autoStartWork: boolean;
+  soundEnabled: boolean;
+}
+
+export function PomodoroTimer({ 
+  onSessionEnd, 
+  disabled,
+  settings: cloudSettings,
+  onUpdateSettings: onCloudUpdateSettings,
+  onResetSettings: onCloudResetSettings,
+}: PomodoroTimerProps) {
   const [showSettings, setShowSettings] = useState(false);
+  
+  // Convert cloud settings to pomodoro settings format
+  const settings: PomodoroSettingsType = cloudSettings ? {
+    workDuration: cloudSettings.workDuration,
+    shortBreakDuration: cloudSettings.shortBreakDuration,
+    longBreakDuration: cloudSettings.longBreakDuration,
+    sessionsBeforeLongBreak: cloudSettings.sessionsBeforeLongBreak,
+    autoStartBreak: cloudSettings.autoStartBreak,
+    autoStartWork: cloudSettings.autoStartWork,
+    soundEnabled: cloudSettings.soundEnabled,
+  } : {
+    workDuration: 25,
+    shortBreakDuration: 5,
+    longBreakDuration: 15,
+    sessionsBeforeLongBreak: 4,
+    autoStartBreak: false,
+    autoStartWork: false,
+    soundEnabled: true,
+  };
+
+  const updateSettings = useCallback((updates: Partial<PomodoroSettingsType>) => {
+    if (onCloudUpdateSettings) {
+      onCloudUpdateSettings(updates);
+    }
+  }, [onCloudUpdateSettings]);
+
+  const resetSettings = useCallback(() => {
+    if (onCloudResetSettings) {
+      onCloudResetSettings();
+    }
+  }, [onCloudResetSettings]);
 
   const handleWorkComplete = useCallback(
     (duration: number) => {
