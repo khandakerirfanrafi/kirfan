@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Timer } from "@/components/Timer";
 import { PomodoroTimer } from "@/components/PomodoroTimer";
@@ -9,9 +9,12 @@ import { Stats } from "@/components/Stats";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { DailyGoal } from "@/components/DailyGoal";
 import { MotivationalQuote } from "@/components/MotivationalQuote";
+import { Achievements } from "@/components/Achievements";
+import { TodoList } from "@/components/TodoList";
 import { useCloudStudySessions } from "@/hooks/useCloudStudySessions";
 import { useCloudSettings } from "@/hooks/useCloudSettings";
 import { useCloudStreak } from "@/hooks/useCloudStreak";
+import { useAchievements } from "@/hooks/useAchievements";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -38,6 +41,20 @@ const Index = () => {
 
   const { settings, updateSettings, resetSettings } = useCloudSettings();
   const { streak, updateStreak } = useCloudStreak();
+  const { checkAchievements } = useAchievements();
+
+  // Check achievements when sessions change
+  useEffect(() => {
+    if (sessions.length > 0) {
+      const totalSeconds = sessions.reduce((acc, s) => acc + s.duration, 0);
+      const totalHours = totalSeconds / 3600;
+      checkAchievements({
+        totalHours,
+        currentStreak: streak.currentStreak,
+        sessionsCount: sessions.length,
+      });
+    }
+  }, [sessions, streak.currentStreak, checkAchievements]);
 
   const handleSessionEnd = useCallback(async (duration: number) => {
     const session = await addSession(duration);
@@ -154,8 +171,18 @@ const Index = () => {
                 currentStreak={streak.currentStreak}
               />
             </div>
+
+            {/* Todo List */}
+            <div className="border-t-2 border-foreground pt-6 animate-fade-in" style={{ animationDelay: "150ms" }}>
+              <TodoList />
+            </div>
+
+            {/* Achievements */}
+            <div className="border-t-2 border-foreground pt-6 animate-fade-in" style={{ animationDelay: "200ms" }}>
+              <Achievements />
+            </div>
             
-            <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
+            <div className="animate-fade-in" style={{ animationDelay: "250ms" }}>
               <Stats
                 todayTotal={todayTotal}
                 weekTotal={weekTotal}
